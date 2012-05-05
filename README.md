@@ -6,7 +6,7 @@ diff2p
 Availability
 ------------
 
-Available for Linux, BSD, OSX or any other *nix system.
+Available for Linux, BSD, OSX or Cygwin.
 
 Requirments
 -----------
@@ -17,3 +17,5 @@ Usage
 -----
 
 `diff2p file-one file-two`
+
+![diff2p screenshot](https://github.com/zencd/diff2p/raw/master/screenshot.png
