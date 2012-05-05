@@ -18,4 +18,4 @@ Usage
 
 `diff2p file-one file-two`
 
-![diff2p screenshot](https://github.com/zencd/diff2p/raw/master/screenshot.png
+![diff2p screenshot](https://github.com/zencd/diff2p/raw/master/screenshot.png)
