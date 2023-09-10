@@ -1,21 +1,15 @@
-diff2p
-======
+# diff2p
 
-`diff2p` is a two pane diff for console (terminal).
+A two-panel diff tool working with terminals.
+Written in 2004 while working as QA in Sun's St. Petersburg office. 
 
-Availability
-------------
+## Requirments
 
-Available for Linux, BSD, OSX or Cygwin.
+- Python 3.9 is fine
+- A coloured terminal
 
-Requirments
------------
+## Usage
 
-A coloured terminal. Python 2.x (tested with 2.7).
+`python diff2p.py file-one file-two`
 
-Usage
------
-
-`diff2p file-one file-two`
-
-![diff2p screenshot](https://github.com/zencd/diff2p/raw/master/screenshot.png)
+![diff2p screenshot](screenshot.png)
