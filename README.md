@@ -10,6 +10,9 @@ Written in 2004 while working as QA in Sun's St. Petersburg office.
 
 ## Usage
 
-`python diff2p.py file-one file-two`
+```shell
+python diff2p.py file-one file-two
+python diff2p.py file-one file-two | less -R
+```
 
 ![diff2p screenshot](screenshot.png)
