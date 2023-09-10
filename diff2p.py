@@ -24,7 +24,7 @@ class LineReader:
         if line_no_1_based is not None:
             assert self.lines_read + 1 == line_no_1_based, 'lines_read=%s, line_no_1_based=%s' % (
                 self.lines_read, line_no_1_based)
-        line = self.f.readline().strip()
+        line = self.f.readline().strip('\r\n')
         if line is not None:
             self.lines_read += 1
         return line
