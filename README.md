@@ -11,8 +11,8 @@ Written in 2004 while working as QA in Sun's St. Petersburg office.
 ## Usage
 
 ```shell
-python diff2p.py file-one file-two
-python diff2p.py file-one file-two | less -R
+python diff2p.py file1 file2
+python diff2p.py file1 file2 | less -R
 ```
 
 ![diff2p screenshot](screenshot.png)
