@@ -106,124 +106,125 @@ class ConsoleUI:
         print('')
 
 
-def pass_equal_lines_before_current_action(ui: ConsoleUI, start1, start2, in1, in2, continue_if_1, continue_if_2):
-    while True:
-        line1 = in1.read_line() if continue_if_1(in1.lines_read, start1) else None
-        line2 = in2.read_line() if continue_if_2(in2.lines_read, start2) else None
-        if line1 or line2:
-            ui.print_two_panels(line1, line2)
-        else:
-            break
+class App:
 
+    def __init__(self, input1: str, input2: str, ui: ConsoleUI, diff_text: str):
+        self.input1 = input1
+        self.input2 = input2
+        self.ui = ui
+        self.diff_text = diff_text
+        self.sed_commands = {
+            'c': self.sed_change,
+            'd': self.sed_delete,
+            'a': self.sed_append,
+        }
 
-def sed_change(ui: ConsoleUI, start1, end1, start2, end2, in1, in2):
-    # print 'sed command "c"', start1, end1, start2, end2
-    range1 = end1 - start1 + 1
-    range2 = end2 - start2 + 1
+    def pass_equal_lines_before_current_action(self, start1, start2, in1, in2, continue_if_1, continue_if_2):
+        while True:
+            line1 = in1.read_line() if continue_if_1(in1.lines_read, start1) else None
+            line2 = in2.read_line() if continue_if_2(in2.lines_read, start2) else None
+            if line1 or line2:
+                self.ui.print_two_panels(line1, line2)
+            else:
+                break
 
-    def continue_1_2(lines_read, action_start):
-        return lines_read + 1 < action_start
+    def sed_change(self, start1, end1, start2, end2, in1, in2):
+        # print 'sed command "c"', start1, end1, start2, end2
+        range1 = end1 - start1 + 1
+        range2 = end2 - start2 + 1
 
-    # print equal lines before current sed action
-    pass_equal_lines_before_current_action(ui, start1, start2, in1, in2, continue_1_2, continue_1_2)
+        def continue_1_2(lines_read, action_start):
+            return lines_read + 1 < action_start
 
-    # print actual difference
-    range_max = max(range1, range2)
-    for i in range(range_max):
-        line1 = in1.read_line() if i < range1 else None
-        line2 = in2.read_line() if i < range2 else None
-        ui.print_two_panels(line1, line2, sed_change=True)
+        # print equal lines before current sed action
+        self.pass_equal_lines_before_current_action(start1, start2, in1, in2, continue_1_2, continue_1_2)
 
+        # print actual difference
+        range_max = max(range1, range2)
+        for i in range(range_max):
+            line1 = in1.read_line() if i < range1 else None
+            line2 = in2.read_line() if i < range2 else None
+            self.ui.print_two_panels(line1, line2, sed_change=True)
 
-def sed_delete(ui: ConsoleUI, start1, end1, start2, end2, in1, in2):
-    # something is deleted in the 2nd source
-    # print 'sed command "d"', start1, end1, start2, end2
-    assert start2 == end2
-    _sed_delete_or_append(ui, start1, end1, start2, end2, in1, in2, is_delete=True)
+    def sed_delete(self, start1, end1, start2, end2, in1, in2):
+        # something is deleted in the 2nd source
+        # print 'sed command "d"', start1, end1, start2, end2
+        assert start2 == end2
+        self._sed_delete_or_append(start1, end1, start2, end2, in1, in2, is_delete=True)
 
+    # something is added within the 2nd source
+    def sed_append(self, start1, end1, start2, end2, in1, in2):
+        # print 'sed command "a"', start1, end1, start2, end2
+        assert start1 == end1
+        self._sed_delete_or_append(start1, end1, start2, end2, in1, in2, is_delete=False)
 
-# something is added within the 2nd source
-def sed_append(ui: ConsoleUI, start1, end1, start2, end2, in1, in2):
-    # print 'sed command "a"', start1, end1, start2, end2
-    assert start1 == end1
-    _sed_delete_or_append(ui, start1, end1, start2, end2, in1, in2, is_delete=False)
+    def _sed_delete_or_append(self, start1, end1, start2, end2, in1, in2, is_delete):
+        def continue_if_1(lines_read, action_start):
+            return lines_read + 1 < action_start
 
+        def continue_if_2(lines_read, action_start):
+            return lines_read + 0 < action_start
 
-def _sed_delete_or_append(ui: ConsoleUI, start1, end1, start2, end2, in1, in2, is_delete):
-    def continue_if_1(lines_read, action_start):
-        return lines_read + 1 < action_start
+        if not is_delete:
+            (continue_if_1, continue_if_2) = (continue_if_2, continue_if_1)
+        self.pass_equal_lines_before_current_action(start1, start2, in1, in2, continue_if_1, continue_if_2)
 
-    def continue_if_2(lines_read, action_start):
-        return lines_read + 0 < action_start
+        startx = start1 if is_delete else start2
+        endx = end1 if is_delete else end2
+        for i in range(startx, endx + 1):
+            line1 = in1.read_line(i) if is_delete else None
+            line2 = in2.read_line(i) if not is_delete else None
+            self.ui.print_two_panels(line1, line2)
 
-    if not is_delete:
-        (continue_if_1, continue_if_2) = (continue_if_2, continue_if_1)
-    pass_equal_lines_before_current_action(ui, start1, start2, in1, in2, continue_if_1, continue_if_2)
+    def print_tails(self, in1, in2):
+        # when all the sed actions are exhausted, then call this function to print the rests of the sources
+        while True:
+            line1 = in1.read_line()
+            line2 = in2.read_line()
+            if line1 or line2:
+                self.ui.print_two_panels(line1, line2)
+            else:
+                break
+        # pass_equal_lines_before_current_action()
 
-    startx = start1 if is_delete else start2
-    endx = end1 if is_delete else end2
-    for i in range(startx, endx + 1):
-        line1 = in1.read_line(i) if is_delete else None
-        line2 = in2.read_line(i) if not is_delete else None
-        ui.print_two_panels(line1, line2)
+    def start(self):
+        in1 = make_file_reader(self.input1)
+        in2 = make_file_reader(self.input2)
+        diff_reader = make_string_reader(self.diff_text)
+        while True:
+            line = diff_reader.read_line()
+            if not line: break
+            m = re.match(SED_ACTION_REGEX, line)
+            if m:
+                start1 = make_int_or_none(m.group(1))
+                end1 = make_int_or_none(m.group(3))
+                sed_cmd = m.group(4)
+                start2 = make_int_or_none(m.group(5))
+                end2 = make_int_or_none(m.group(7))
 
+                # convert '1c4' to '1,1c4,4'
+                if end1 is None:
+                    end1 = start1
+                if end2 is None:
+                    end2 = start2
 
-def print_tails(ui: ConsoleUI, in1, in2):
-    # when all the sed actions are exhausted, then call this function to print the rests of the sources
-    while True:
-        line1 = in1.read_line()
-        line2 = in2.read_line()
-        if line1 or line2:
-            ui.print_two_panels(line1, line2)
-        else:
-            break
-    # pass_equal_lines_before_current_action()
+                self.sed_commands[sed_cmd](start1, end1, start2, end2, in1, in2)
+            elif re.match('[<>-].*', line):
+                pass
+            else:
+                print('error: unexpected line reading diff: %s' % line)
+        self.print_tails(in1, in2)
 
-
-sed_commands = {
-    'c': sed_change,
-    'd': sed_delete,
-    'a': sed_append,
-}
-
-
-def parse_diff(ui: ConsoleUI, diff_text, input1, input2):
-    in1 = make_file_reader(input1)
-    in2 = make_file_reader(input2)
-    diff_reader = make_string_reader(diff_text)
-    while True:
-        line = diff_reader.read_line()
-        if not line: break
-        m = re.match(SED_ACTION_REGEX, line)
-        if m:
-            start1 = make_int_or_none(m.group(1))
-            end1 = make_int_or_none(m.group(3))
-            sed_cmd = m.group(4)
-            start2 = make_int_or_none(m.group(5))
-            end2 = make_int_or_none(m.group(7))
-
-            # convert '1c4' to '1,1c4,4'
-            if end1 is None:
-                end1 = start1
-            if end2 is None:
-                end2 = start2
-
-            sed_commands[sed_cmd](ui, start1, end1, start2, end2, in1, in2)
-        elif re.match('[<>-].*', line):
-            pass
-        else:
-            print('error: unexpected line reading diff: %s' % line)
-    print_tails(ui, in1, in2)
-
-
-def main():
-    input1 = sys.argv[1]
-    input2 = sys.argv[2]
-    width, height = shutil.get_terminal_size(fallback=(80, 25))  # real width N/A in IDE
-    ui = ConsoleUI(width)
-    diff_text = read_process_output(['diff', input1, input2])
-    parse_diff(ui, diff_text, input1, input2)
+    @staticmethod
+    def main():
+        input1 = sys.argv[1]
+        input2 = sys.argv[2]
+        width, height = shutil.get_terminal_size(fallback=(80, 25))  # real width N/A in IDE
+        ui = ConsoleUI(width)
+        diff_text = read_process_output(['diff', input1, input2])
+        app = App(input1, input2, ui, diff_text)
+        app.start()
 
 
 if __name__ == '__main__':
-    main()
+    App.main()
