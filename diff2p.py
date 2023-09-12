@@ -68,7 +68,7 @@ class ConsoleUI:
 
         self.tab_replacement = ' ' * 4
 
-    def print_two_panels(self, line1, line2, sed_change=False):
+    def print_line_in_two_panels(self, line1, line2, sed_change=False):
         line1 = line1 if line1 is None else line1.replace('\t', self.tab_replacement)
         line2 = line2 if line2 is None else line2.replace('\t', self.tab_replacement)
 
@@ -124,7 +124,7 @@ class App:
             line1 = in1.read_line() if continue_if_1(in1.lines_read, start1) else None
             line2 = in2.read_line() if continue_if_2(in2.lines_read, start2) else None
             if line1 or line2:
-                self.ui.print_two_panels(line1, line2)
+                self.ui.print_line_in_two_panels(line1, line2)
             else:
                 break
 
@@ -144,7 +144,7 @@ class App:
         for i in range(range_max):
             line1 = in1.read_line() if i < range1 else None
             line2 = in2.read_line() if i < range2 else None
-            self.ui.print_two_panels(line1, line2, sed_change=True)
+            self.ui.print_line_in_two_panels(line1, line2, sed_change=True)
 
     def sed_delete(self, start1, end1, start2, end2, in1, in2):
         # something is deleted in the 2nd source
@@ -174,7 +174,7 @@ class App:
         for i in range(startx, endx + 1):
             line1 = in1.read_line(i) if is_delete else None
             line2 = in2.read_line(i) if not is_delete else None
-            self.ui.print_two_panels(line1, line2)
+            self.ui.print_line_in_two_panels(line1, line2)
 
     def print_tails(self, in1, in2):
         # when all the sed actions are exhausted, then call this function to print the rests of the sources
@@ -182,7 +182,7 @@ class App:
             line1 = in1.read_line()
             line2 = in2.read_line()
             if line1 or line2:
-                self.ui.print_two_panels(line1, line2)
+                self.ui.print_line_in_two_panels(line1, line2)
             else:
                 break
         # pass_equal_lines_before_current_action()
