@@ -1,6 +1,6 @@
 # diff2p
 
-A two-panel diff tool working with terminals.
+A two-panel diff tool for terminal.
 Written in 2004 while SQA'ing Sun Studio Tools. 
 
 ## Requirments
