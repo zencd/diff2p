@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import math
+import shutil
 from io import StringIO
 import os
 import re
@@ -217,17 +218,10 @@ def parse_diff(diff_text, input1, input2):
 
 
 def main():
+    global ui
     input1 = sys.argv[1]
     input2 = sys.argv[2]
-
-    try:
-        size = read_process_output(['stty', 'size'])
-        width = int(size.strip().split(' ')[1])
-    except IndexError:
-        # stty not available in IDE
-        width = 80
-
-    global ui
+    width, height = shutil.get_terminal_size(fallback=(80, 25))  # real width N/A in IDE
     ui = ConsoleUI(width)
     diff_text = read_process_output(['diff', input1, input2])
     parse_diff(diff_text, input1, input2)
